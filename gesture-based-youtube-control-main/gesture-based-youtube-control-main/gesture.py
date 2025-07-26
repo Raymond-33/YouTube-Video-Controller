@@ -4,29 +4,28 @@ from func import recognizeHandGesture, getStructuredLandmarks
 from selenium import webdriver
 from selenium.webdriver.chrome.service import Service
 from selenium.webdriver.chrome.options import Options
+from webdriver_manager.chrome import ChromeDriverManager
 import time
 
 mp_drawing = mp.solutions.drawing_utils
 mp_hands = mp.solutions.hands
 
-# Path to your ChromeDriver
-chrome_driver_path =r'D:\Projects\Youtube Video controller\chromedriver-win32\chromedriver-win32\chromedriver.exe'
-
-  # Ensure this path is correct
-
-# Configure Selenium to use the correct driver
-chrome_service = Service(chrome_driver_path)
+# Use webdriver-manager to install ChromeDriver
 chrome_options = Options()
+# Uncomment this if you want it to run without opening a browser window
+# chrome_options.add_argument("--headless")
 
 def gest():
-    driver = webdriver.Chrome(service=chrome_service, options=chrome_options)
+    # Use webdriver-manager to auto-fetch ChromeDriver
+    driver = webdriver.Chrome(service=Service(ChromeDriverManager().install()), options=chrome_options)
     driver.get('https://www.youtube.com/watch?v=09R8_2nJtjg')
     driver.execute_script('document.getElementsByTagName("video")[0].play()')
-    
+
     hands = mp_hands.Hands(min_detection_confidence=0.7, min_tracking_confidence=0.5)
     cap = cv2.VideoCapture(0)
     i = 0
     c = 0
+
     try:
         while cap.isOpened():
             l = []
@@ -48,7 +47,6 @@ def gest():
                         l.append(lp.y)
             cv2.imshow('MediaPipe Hands', image)
 
-            # Check if 'l' has the expected number of elements before processing
             if len(l) == 42:
                 recognizedHandGesture = recognizeHandGesture(getStructuredLandmarks(l))
                 print(recognizedHandGesture)
@@ -65,10 +63,8 @@ def gest():
                 elif recognizedHandGesture == 7:
                     driver.execute_script('document.getElementsByTagName("video")[0].volume = 1')
                 elif recognizedHandGesture == 8:
-                    # Fast Forward (All fingers open except the ring finger)
                     driver.execute_script('document.getElementsByTagName("video")[0].currentTime += 5')
                 elif recognizedHandGesture == 9:
-                    # Rewind (All fingers open except the little finger)
                     driver.execute_script('document.getElementsByTagName("video")[0].currentTime -= 5')
             else:
                 print("Insufficient landmarks detected")
